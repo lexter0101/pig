@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pig Business Ledger</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --paper: #EFE8D6;
+    --paper-dark: #E4DAC0;
+    --ink: #221E17;
+    --barn: #8C2F23;
+    --barn-dark: #6E241A;
+    --forest: #2E4B39;
+    --gold: #B9862F;
+    --rule: #C9BB98;
+    --loss: #A8362A;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--paper);
+    background-image: repeating-linear-gradient(transparent, transparent 34px, rgba(140,47,35,0.06) 35px);
+    color: var(--ink);
+    min-height: 100%;
+    padding: 28px 16px 60px;
+    position: relative;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; bottom: 0; left: 44px;
+    width: 2px;
+    background: var(--barn);
+    opacity: 0.35;
+    pointer-events: none;
+  }
+  .container { max-width: 780px; margin: 0 auto; position: relative; }
+
+  .masthead { margin-bottom: 22px; padding-left: 26px; }
+  .masthead h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: 34px;
+    letter-spacing: -0.01em;
+    margin: 0 0 2px;
+    color: var(--barn-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .masthead .sub {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--forest);
+    font-weight: 600;
+  }
+
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin: 0 0 28px 26px;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .summary .cell { background: var(--paper-dark); padding: 14px 16px; }
+  .summary .cell .label {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    opacity: 0.65;
+    margin-bottom: 6px;
+  }
+  .summary .cell .num { font-family: 'IBM Plex Mono', monospace; font-size: 19px; font-weight: 600; }
+  .summary .profit .num { color: var(--forest); }
+  .summary .profit.neg .num { color: var(--loss); }
+
+  .new-batch { margin: 0 0 30px 26px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  input, select {
+    font-family: 'Inter', sans-serif;
+    border: 1px solid var(--rule);
+    background: #fbf8f0;
+    padding: 9px 10px;
+    border-radius: 3px;
+    font-size: 13.5px;
+    color: var(--ink);
+  }
+  input:focus, select:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+  .new-batch input[type="text"] { flex: 1; min-width: 160px; }
+  .btn {
+    font-family: 'Inter', sans-serif;
+    border: none;
+    cursor: pointer;
+    border-radius: 3px;
+    font-weight: 600;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 14px;
+    transition: transform 0.08s ease, opacity 0.15s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-barn { background: var(--barn); color: #F6EEDF; }
+  .btn-barn:hover { background: var(--barn-dark); }
+  .btn-ghost { background: transparent; color: var(--forest); padding: 6px 8px; }
+  .btn-ghost:hover { text-decoration: underline; }
+  .btn-icon {
+    background: transparent; border: none; cursor: pointer; color: var(--barn);
+    padding: 4px; display: inline-flex; opacity: 0.7;
+  }
+  .btn-icon:hover { opacity: 1; }
+
+  .batch {
+    margin: 0 0 20px 26px;
+    background: #FBF8F0;
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--barn);
+    border-radius: 2px;
+  }
+  .batch-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; cursor: pointer; }
+  .batch-head .left { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .batch-head .name { font-family: 'Fraunces', serif; font-weight: 700; font-size: 18px; }
+  .batch-head .meta { font-size: 12px; color: #6b6152; }
+  .status {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 3px 9px;
+    border-radius: 20px;
+    border: 1px solid currentColor;
+    cursor: pointer;
+  }
+  .status.ongoing { color: var(--gold); }
+  .status.sold { color: var(--forest); }
+
+  .batch-profit { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; gap: 4px; }
+  .batch-profit.pos { color: var(--forest); }
+  .batch-profit.neg { color: var(--loss); }
+
+  .batch-body { padding: 0 16px 18px; border-top: 1px dashed var(--rule); display: none; }
+  .batch.open .batch-body { display: block; }
+  .chevron { transition: transform 0.15s ease; }
+  .batch.open .chevron { transform: rotate(180deg); }
+
+  .section-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    color: var(--barn-dark);
+    margin: 16px 0 8px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  td { padding: 6px 4px; border-bottom: 1px dotted var(--rule); vertical-align: middle; }
+  td.amt { font-family: 'IBM Plex Mono', monospace; text-align: right; white-space: nowrap; }
+  td.cat { color: var(--forest); font-weight: 600; font-size: 12.5px; }
+  .empty-row { color: #9a8f7a; font-style: italic; font-size: 12.5px; padding: 8px 4px; }
+
+  .add-row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .add-row select { flex: 0 0 150px; }
+  .add-row input[type="text"] { flex: 1; min-width: 100px; }
+  .add-row input[type="number"] { width: 100px; }
+
+  .batch-totals {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 2px solid var(--ink);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .batch-totals .t-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.6; margin-bottom: 3px; }
+  .batch-totals .t-num { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 14.5px; }
+
+  .delete-batch { text-align: right; margin-top: 10px; }
+
+  .empty-state {
+    margin-left: 26px;
+    padding: 30px 20px;
+    text-align: center;
+    border: 1px dashed var(--rule);
+    border-radius: 4px;
+    color: #6b6152;
+    font-size: 14px;
+  }
+  .save-warn { margin: 0 0 14px 26px; font-size: 12px; color: var(--loss); }
+
+  @media (max-width: 480px) {
+    .summary { grid-template-columns: 1fr; }
+    .batch-totals { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="masthead">
+      <h1>🐷 Pig Business Ledger</h1>
+      <div class="sub">Puhunan vs Kita, per batch</div>
+    </div>
+
+    <div class="save-warn" id="saveWarn" style="display:none;">Couldn't save — your changes may not persist. Try again in a moment.</div>
+
+    <div class="summary">
+      <div class="cell">
+        <div class="label">Total Puhunan</div>
+        <div class="num" id="sumPuhunan">₱0.00</div>
+      </div>
+      <div class="cell">
+        <div class="label">Total Kita</div>
+        <div class="num" id="sumKita">₱0.00</div>
+      </div>
+      <div class="cell profit" id="sumProfitCell">
+        <div class="label">Net Profit</div>
+        <div class="num" id="sumProfit">₱0.00</div>
+      </div>
+    </div>
+
+    <div class="new-batch">
+      <input type="text" id="newBatchName" placeholder="New batch name, e.g. Batch 3" />
+      <input type="date" id="newBatchDate" />
+      <button class="btn btn-barn" onclick="addBatch()">+ Add Batch</button>
+    </div>
+
+    <div class="empty-state" id="emptyState" style="display:none;">No batches yet. Add your first batch above to start tracking puhunan and kita.</div>
+
+    <div id="batchList"></div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = "https://rhqmokxwojlgifcipfzk.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJocW1va3h3b2psZ2lmY2lwZnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNzAyNTQsImV4cCI6MjEwMDY0NjI1NH0.ZDrAjhcRa_B7Lv6J86euWp6WxjmLwpAvCYPL6ZLXK7k";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const CATEGORIES = [
+    { id: "piglets", label: "Piglets / Stock" },
+    { id: "feeds", label: "Feeds" },
+    { id: "vitamins", label: "Vitamins / Medicine" },
+  ];
+
+  let batches = []; // [{ id, name, startDate, status, expenses:[], sales:[] }]
+  let expanded = {};
+
+  function peso(n) {
+    n = Number(n) || 0;
+    return "₱" + n.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function catLabel(id) {
+    const c = CATEGORIES.find((c) => c.id === id);
+    return c ? c.label : id;
+  }
+  function computeBatch(b) {
+    const totalPuhunan = b.expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+    const totalKita = b.sales.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+    const profit = totalKita - totalPuhunan;
+    const roi = totalPuhunan > 0 ? (profit / totalPuhunan) * 100 : 0;
+    return { totalPuhunan, totalKita, profit, roi };
+  }
+
+  function showWarn(msg) {
+    const el = document.getElementById("saveWarn");
+    el.textContent = msg;
+    el.style.display = "block";
+  }
+  function clearWarn() {
+    document.getElementById("saveWarn").style.display = "none";
+  }
+
+  async function load() {
+    try {
+      const [{ data: batchRows, error: bErr }, { data: expRows, error: eErr }, { data: saleRows, error: sErr }] =
+        await Promise.all([
+          sb.from("batches").select("*").order("created_at", { ascending: true }),
+          sb.from("expenses").select("*"),
+          sb.from("sales").select("*"),
+        ]);
+      if (bErr || eErr || sErr) throw bErr || eErr || sErr;
+
+      batches = batchRows.map((b) => ({
+        id: b.id,
+        name: b.name,
+        startDate: b.start_date || "",
+        status: b.status || "Ongoing",
+        expenses: expRows.filter((e) => e.batch_id === b.id),
+        sales: saleRows.filter((s) => s.batch_id === b.id),
+      }));
+      if (batches.length) expanded[batches[batches.length - 1].id] = true;
+      clearWarn();
+    } catch (e) {
+      showWarn("Couldn't load data from Supabase: " + (e.message || e));
+    }
+    render();
+  }
+
+  async function addBatch() {
+    const nameInput = document.getElementById("newBatchName");
+    const dateInput = document.getElementById("newBatchDate");
+    const name = nameInput.value.trim();
+    if (!name) return;
+    try {
+      const { data, error } = await sb
+        .from("batches")
+        .insert({ name, start_date: dateInput.value || null, status: "Ongoing" })
+        .select()
+        .single();
+      if (error) throw error;
+      batches.push({ id: data.id, name: data.name, startDate: data.start_date || "", status: data.status, expenses: [], sales: [] });
+      expanded[data.id] = true;
+      nameInput.value = "";
+      dateInput.value = "";
+      clearWarn();
+    } catch (e) {
+      showWarn("Couldn't add batch: " + (e.message || e));
+    }
+    render();
+  }
+
+  async function deleteBatch(id) {
+    try {
+      const { error } = await sb.from("batches").delete().eq("id", id);
+      if (error) throw error;
+      batches = batches.filter((b) => b.id !== id);
+      clearWarn();
+    } catch (e) {
+      showWarn("Couldn't delete batch: " + (e.message || e));
+    }
+    render();
+  }
+
+  async function toggleStatus(id, ev) {
+    ev.stopPropagation();
+    const b = batches.find((b) => b.id === id);
+    if (!b) return;
+    const newStatus = b.status === "Ongoing" ? "Sold" : "Ongoing";
+    try {
+      const { error } = await sb.from("batches").update({ status: newStatus }).eq("id", id);
+      if (error) throw error;
+      b.status = newStatus;
+      clearWarn();
+    } catch (e) {
+      showWarn("Couldn't update status: " + (e.message || e));
+    }
+    render();
+  }
+
+  function toggleExpand(id) {
+    expanded[id] = !expanded[id];
+    render();
+  }
+
+  async function addExpense(batchId) {
+    const catEl = document.getElementById("cat-" + batchId);
+    const descEl = document.getElementById("edesc-" + batchId);
+    const amtEl = document.getElementById("eamt-" + batchId);
+    const amount = Number(amtEl.value);
+    if (!amount || amount <= 0) return;
+    try {
+      const { data, error } = await sb
+        .from("expenses")
+        .insert({ batch_id: batchId, category: catEl.value, description: descEl.value || null, amount })
+        .select()
+        .single();
+      if (error) throw error;
+      const b = batches.find((b) => b.id === batchId);
+      b.expenses.push(data);
+      descEl.value = "";
+      amtEl.value = "";
+      clearWarn();
+    } catch (e) {
+      showWarn("Couldn't add expense: " + (e.message || e));
+    }
+    render();
+  }
+
+  async function deleteExpense(batchId, expenseId) {
+    try {
+      const { error } = await sb.from("expenses").delete().eq("id", expenseId);
+      if (error) throw error;
+      const b = batches.find((b) => b.id === batchId);
+      b.expenses = b.expenses.filter((e) => e.id !== expenseId);
+      clearWarn();
+    } catch (e) {
+      showWarn("Couldn't delete expense: " + (e.message || e));
+    }
+    render();
+  }
+
+  async function addSale(batchId) {
+    const descEl = document.getElementById("sdesc-" + batchId);
+    const amtEl = document.getElementById("samt-" + batchId);
+    const amount = Number(amtEl.value);
+    if (!amount || amount <= 0) return;
+    try {
+      const { data, error } = await sb
+        .from("sales")
+        .insert({ batch_id: batchId, description: descEl.value || null, amount })
+        .select()
+        .single();
+      if (error) throw error;
+      const b = batches.find((b) => b.id === batchId);
+      b.sales.push(data);
+      descEl.value = "";
+      amtEl.value = "";
+      clearWarn();
+    } catch (e) {
+      showWarn("Couldn't add sale: " + (e.message || e));
+    }
+    render();
+  }
+
+  async function deleteSale(batchId, saleId) {
+    try {
+      const { error } = await sb.from("sales").delete().eq("id", saleId);
+      if (error) throw error;
+      const b = batches.find((b) => b.id === batchId);
+      b.sales = b.sales.filter((s) => s.id !== saleId);
+      clearWarn();
+    } catch (e) {
+      showWarn("Couldn't delete sale: " + (e.message || e));
+    }
+    render();
+  }
+
+  function catOptions(selectedId) {
+    return CATEGORIES.map(
+      (c) => `<option value="${c.id}" ${c.id === selectedId ? "selected" : ""}>${c.label}</option>`
+    ).join("");
+  }
+
+  function render() {
+    // overall summary
+    let sumPuhunan = 0, sumKita = 0, sumProfit = 0;
+    batches.forEach((b) => {
+      const c = computeBatch(b);
+      sumPuhunan += c.totalPuhunan;
+      sumKita += c.totalKita;
+      sumProfit += c.profit;
+    });
+    document.getElementById("sumPuhunan").textContent = peso(sumPuhunan);
+    document.getElementById("sumKita").textContent = peso(sumKita);
+    document.getElementById("sumProfit").textContent = peso(sumProfit);
+    document.getElementById("sumProfitCell").classList.toggle("neg", sumProfit < 0);
+
+    document.getElementById("emptyState").style.display = batches.length === 0 ? "block" : "none";
+
+    const listEl = document.getElementById("batchList");
+    listEl.innerHTML = batches
+      .map((b) => {
+        const { totalPuhunan, totalKita, profit, roi } = computeBatch(b);
+        const isOpen = !!expanded[b.id];
+        const expenseRows = b.expenses.length
+          ? b.expenses
+              .map(
+                (e) => `
+              <tr>
+                <td class="cat">${catLabel(e.category)}</td>
+                <td>${e.description}</td>
+                <td class="amt">${peso(e.amount)}</td>
+                <td style="width:28px;"><button class="btn-icon" onclick="deleteExpense('${b.id}','${e.id}')">✕</button></td>
+              </tr>`
+              )
+              .join("")
+          : `<tr><td colspan="3" class="empty-row">No expenses logged yet for this batch.</td></tr>`;
+
+        const saleRows = b.sales.length
+          ? b.sales
+              .map(
+                (s) => `
+              <tr>
+                <td>${s.description || "Sale"}</td>
+                <td class="amt">${peso(s.amount)}</td>
+                <td style="width:28px;"><button class="btn-icon" onclick="deleteSale('${b.id}','${s.id}')">✕</button></td>
+              </tr>`
+              )
+              .join("")
+          : `<tr><td colspan="2" class="empty-row">No sales logged yet for this batch.</td></tr>`;
+
+        return `
+        <div class="batch ${isOpen ? "open" : ""}">
+          <div class="batch-head" onclick="toggleExpand('${b.id}')">
+            <div class="left">
+              <span class="name">${b.name}</span>
+              ${b.startDate ? `<span class="meta">${b.startDate}</span>` : ""}
+              <span class="status ${b.status === "Sold" ? "sold" : "ongoing"}" onclick="toggleStatus('${b.id}', event)">${b.status}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="batch-profit ${profit >= 0 ? "pos" : "neg"}">${profit >= 0 ? "▲" : "▼"} ${peso(profit)}</span>
+              <span class="chevron">▾</span>
+            </div>
+          </div>
+          <div class="batch-body">
+            <div class="section-title">Expenses (Puhunan)</div>
+            <table><tbody>${expenseRows}</tbody></table>
+            <div class="add-row">
+              <select id="cat-${b.id}">${catOptions("piglets")}</select>
+              <input type="text" id="edesc-${b.id}" placeholder="Description (optional)" />
+              <input type="number" id="eamt-${b.id}" placeholder="Amount" onkeydown="if(event.key==='Enter') addExpense('${b.id}')" />
+              <button class="btn btn-barn" onclick="addExpense('${b.id}')">+ Add</button>
+            </div>
+
+            <div class="section-title">Sales (Kita)</div>
+            <table><tbody>${saleRows}</tbody></table>
+            <div class="add-row">
+              <input type="text" id="sdesc-${b.id}" placeholder="Description (optional)" />
+              <input type="number" id="samt-${b.id}" placeholder="Amount" onkeydown="if(event.key==='Enter') addSale('${b.id}')" />
+              <button class="btn btn-barn" onclick="addSale('${b.id}')">+ Add</button>
+            </div>
+
+            <div class="batch-totals">
+              <div><div class="t-label">Puhunan</div><div class="t-num">${peso(totalPuhunan)}</div></div>
+              <div><div class="t-label">Kita</div><div class="t-num">${peso(totalKita)}</div></div>
+              <div><div class="t-label">Profit</div><div class="t-num" style="color:${profit >= 0 ? "var(--forest)" : "var(--loss)"}">${peso(profit)}</div></div>
+              <div><div class="t-label">ROI</div><div class="t-num">${roi.toFixed(0)}%</div></div>
+            </div>
+
+            <div class="delete-batch">
+              <button class="btn btn-ghost" onclick="deleteBatch('${b.id}')">🗑 Delete batch</button>
+            </div>
+          </div>
+        </div>`;
+      })
+      .join("");
+  }
+
+  document.getElementById("newBatchName").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") addBatch();
+  });
+
+  load();
+</script>
+</body>
+</html>
