@@ -2,239 +2,308 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
 <title>Pig Business Ledger</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&display=swap');
 
   :root {
-    --paper: #EFE8D6;
-    --paper-dark: #E4DAC0;
-    --ink: #221E17;
+    --paper: #F3EFE4;
+    --card: #FFFFFF;
+    --ink: #23201A;
+    --ink-soft: #6E6656;
+    --ink-faint: #98907C;
     --barn: #8C2F23;
     --barn-dark: #6E241A;
     --forest: #2E4B39;
     --gold: #B9862F;
-    --rule: #C9BB98;
+    --rule: #E4DCC8;
     --loss: #A8362A;
+    --shadow: 0 1px 2px rgba(35,32,26,0.04), 0 4px 14px rgba(35,32,26,0.06);
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; margin: 0; }
   body {
     font-family: 'Inter', sans-serif;
     background: var(--paper);
-    background-image: repeating-linear-gradient(transparent, transparent 34px, rgba(140,47,35,0.06) 35px);
     color: var(--ink);
     min-height: 100%;
-    padding: 28px 16px 60px;
-    position: relative;
+    padding: 24px 16px 60px;
   }
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0; bottom: 0; left: 44px;
-    width: 2px;
-    background: var(--barn);
-    opacity: 0.35;
-    pointer-events: none;
-  }
-  .container { max-width: 780px; margin: 0 auto; position: relative; }
+  .container { max-width: 700px; margin: 0 auto; }
+  button, input, select { font: inherit; }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
-  .masthead { margin-bottom: 22px; padding-left: 26px; }
-  .masthead h1 {
+  .masthead { margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .masthead .titles h1 {
     font-family: 'Fraunces', serif;
-    font-weight: 900;
-    font-size: 34px;
-    letter-spacing: -0.01em;
+    font-weight: 700;
+    font-size: 25px;
     margin: 0 0 2px;
     color: var(--barn-dark);
-    display: flex;
-    align-items: center;
-    gap: 10px;
   }
-  .masthead .sub {
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: var(--forest);
-    font-weight: 600;
-  }
+  .masthead .titles .sub { font-size: 13px; color: var(--ink-soft); }
 
-  .summary {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: var(--rule);
-    border: 1px solid var(--rule);
-    margin: 0 0 28px 26px;
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  .summary .cell { background: var(--paper-dark); padding: 14px 16px; }
-  .summary .cell .label {
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-weight: 700;
-    opacity: 0.65;
-    margin-bottom: 6px;
-  }
-  .summary .cell .num { font-family: 'IBM Plex Mono', monospace; font-size: 19px; font-weight: 600; }
+  .card { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; box-shadow: var(--shadow); }
+
+  .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 0 16px; }
+  .summary .cell { padding: 13px 14px; }
+  .summary .cell .label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: var(--ink-faint); margin-bottom: 4px; }
+  .summary .cell .num { font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600; }
   .summary .profit .num { color: var(--forest); }
   .summary .profit.neg .num { color: var(--loss); }
 
-  .new-batch { margin: 0 0 30px 26px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  input, select {
-    font-family: 'Inter', sans-serif;
-    border: 1px solid var(--rule);
-    background: #fbf8f0;
-    padding: 9px 10px;
-    border-radius: 3px;
-    font-size: 13.5px;
-    color: var(--ink);
-  }
-  input:focus, select:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
-  .new-batch input[type="text"] { flex: 1; min-width: 160px; }
-  .btn {
-    font-family: 'Inter', sans-serif;
-    border: none;
-    cursor: pointer;
-    border-radius: 3px;
-    font-weight: 600;
-    font-size: 13px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 9px 14px;
-    transition: transform 0.08s ease, opacity 0.15s ease;
-  }
-  .btn:active { transform: scale(0.97); }
-  .btn-barn { background: var(--barn); color: #F6EEDF; }
-  .btn-barn:hover { background: var(--barn-dark); }
-  .btn-ghost { background: transparent; color: var(--forest); padding: 6px 8px; }
-  .btn-ghost:hover { text-decoration: underline; }
-  .btn-icon {
-    background: transparent; border: none; cursor: pointer; color: var(--barn);
-    padding: 4px; display: inline-flex; opacity: 0.7;
-  }
-  .btn-icon:hover { opacity: 1; }
+  .toolbar { margin: 0 0 20px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .search-wrap { position: relative; flex: 1 1 200px; }
+  .search-wrap input { width: 100%; padding-left: 32px; }
+  .search-wrap .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: 0.4; font-size: 13px; pointer-events: none; }
+  .filter-select { flex: 1 1 120px; min-width: 0; }
+  .toolbar .btn-barn { flex: 1 1 100%; }
 
-  .batch {
-    margin: 0 0 20px 26px;
-    background: #FBF8F0;
+  input, select {
     border: 1px solid var(--rule);
-    border-left: 4px solid var(--barn);
-    border-radius: 2px;
+    background: var(--card);
+    padding: 9px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--ink);
+    min-height: 40px;
+    width: 100%;
   }
-  .batch-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; cursor: pointer; }
-  .batch-head .left { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-  .batch-head .name { font-family: 'Fraunces', serif; font-weight: 700; font-size: 18px; }
-  .batch-head .meta { font-size: 12px; color: #6b6152; }
-  .status {
-    font-size: 10.5px;
-    text-transform: uppercase;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    padding: 3px 9px;
-    border-radius: 20px;
-    border: 1px solid currentColor;
-    cursor: pointer;
+  input::placeholder { color: var(--ink-faint); }
+
+  .btn {
+    border: none; cursor: pointer; border-radius: 8px; font-weight: 600; font-size: 13.5px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 9px 14px; min-height: 40px; white-space: nowrap; transition: background 0.12s ease, opacity 0.12s ease;
   }
+  .btn:disabled { opacity: 0.55; cursor: default; }
+  .btn-barn { background: var(--barn); color: #FBF3E9; }
+  .btn-barn:hover:not(:disabled) { background: var(--barn-dark); }
+  .btn-danger { background: var(--loss); color: #FBF3E9; }
+  .btn-danger:hover:not(:disabled) { background: #8a2b21; }
+  .btn-ghost { background: transparent; color: var(--forest); padding: 6px 10px; min-height: auto; }
+  .btn-ghost:hover { text-decoration: underline; }
+  .btn-outline { background: transparent; border: 1px solid var(--rule); color: var(--ink); }
+  .btn-outline:hover:not(:disabled) { border-color: var(--barn); color: var(--barn-dark); }
+  .btn-block { width: 100%; }
+  .btn-sm { font-size: 12.5px; padding: 7px 10px; min-height: 34px; }
+  .btn-icon {
+    background: transparent; border: none; cursor: pointer; color: var(--ink-faint);
+    padding: 6px; display: inline-flex; min-height: auto; font-size: 14px; border-radius: 6px;
+  }
+  .btn-icon:hover { color: var(--barn); background: rgba(140,47,35,0.08); }
+
+  .batch { margin: 0 0 12px; overflow: hidden; }
+  .batch-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 14px 14px; cursor: pointer; }
+  .batch-head .left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; flex: 1 1 auto; }
+  .batch-head .name { font-family: 'Fraunces', serif; font-weight: 700; font-size: 16px; }
+  .batch-head .meta { font-size: 12px; color: var(--ink-soft); }
+  .status { font-size: 10.5px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em; padding: 4px 10px; border-radius: 20px; border: 1px solid currentColor; cursor: pointer; }
   .status.ongoing { color: var(--gold); }
   .status.sold { color: var(--forest); }
 
-  .batch-profit { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; gap: 4px; }
+  .batch-head .right { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .batch-profit { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 14px; white-space: nowrap; padding-right: 2px; }
   .batch-profit.pos { color: var(--forest); }
   .batch-profit.neg { color: var(--loss); }
-
-  .batch-body { padding: 0 16px 18px; border-top: 1px dashed var(--rule); display: none; }
-  .batch.open .batch-body { display: block; }
-  .chevron { transition: transform 0.15s ease; }
+  .chevron { transition: transform 0.15s ease; opacity: 0.5; font-size: 12px; padding: 6px 4px; }
   .batch.open .chevron { transform: rotate(180deg); }
 
-  .section-title {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-weight: 700;
-    color: var(--barn-dark);
-    margin: 16px 0 8px;
-  }
-  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-  td { padding: 6px 4px; border-bottom: 1px dotted var(--rule); vertical-align: middle; }
+  .batch-body { padding: 0 14px 14px; border-top: 1px solid var(--rule); display: none; animation: fadeIn 0.15s ease; }
+  .batch.open .batch-body { display: block; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .section-row { display: flex; align-items: center; justify-content: space-between; margin: 14px 0 6px; }
+  .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: var(--ink-faint); }
+
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 280px; }
+  td { padding: 8px 4px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
   td.amt { font-family: 'IBM Plex Mono', monospace; text-align: right; white-space: nowrap; }
-  td.cat { color: var(--forest); font-weight: 600; font-size: 12.5px; }
-  .empty-row { color: #9a8f7a; font-style: italic; font-size: 12.5px; padding: 8px 4px; }
+  td.cat { color: var(--forest); font-weight: 600; font-size: 12px; white-space: nowrap; }
+  .empty-row { color: var(--ink-faint); font-style: italic; font-size: 12.5px; padding: 10px 4px; }
 
-  .add-row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-  .add-row select { flex: 0 0 150px; }
-  .add-row input[type="text"] { flex: 1; min-width: 100px; }
-  .add-row input[type="number"] { width: 100px; }
+  .batch-totals { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--ink); display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .batch-totals .t-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-faint); margin-bottom: 2px; }
+  .batch-totals .t-num { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 13.5px; }
 
-  .batch-totals {
-    margin-top: 16px;
-    padding-top: 12px;
-    border-top: 2px solid var(--ink);
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+  .empty-state { padding: 30px 18px; text-align: center; color: var(--ink-soft); font-size: 14px; }
+  .result-count { margin: 0 0 10px; font-size: 12px; color: var(--ink-soft); }
+
+  /* Toast */
+  .toast {
+    position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(0);
+    background: var(--ink); color: #F3EFE4; padding: 11px 16px; border-radius: 9px;
+    font-size: 13px; max-width: 90vw; box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    z-index: 80; display: none;
   }
-  .batch-totals .t-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.6; margin-bottom: 3px; }
-  .batch-totals .t-num { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 14.5px; }
+  .toast.error { background: var(--loss); }
+  .toast.show { display: block; }
 
-  .delete-batch { text-align: right; margin-top: 10px; }
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(34,30,23,0.45); z-index: 50; align-items: center; justify-content: center; padding: 16px; }
+  .modal-overlay.open { display: flex; }
+  .modal-overlay.top { z-index: 60; }
+  .modal { width: 100%; max-width: 320px; padding: 18px; }
+  .modal h3 { font-family: 'Fraunces', serif; font-size: 17px; margin: 0 0 4px; color: var(--barn-dark); }
+  .modal p.hint { font-size: 12.5px; color: var(--ink-soft); margin: 0 0 14px; line-height: 1.4; }
+  .modal .field-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-faint); margin: 10px 0 4px; }
+  .modal .field-label:first-of-type { margin-top: 0; }
+  .modal .row2 { display: flex; gap: 8px; }
+  .modal .row2 > * { flex: 1; }
+  .cat-inline { display: flex; gap: 6px; align-items: center; }
+  .cat-inline select { flex: 1; }
+  .modal .err { font-size: 11.5px; color: var(--loss); min-height: 14px; margin-top: 6px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+  .modal-actions.stretch .btn { flex: 1; }
 
-  .empty-state {
-    margin-left: 26px;
-    padding: 30px 20px;
-    text-align: center;
-    border: 1px dashed var(--rule);
-    border-radius: 4px;
-    color: #6b6152;
-    font-size: 14px;
-  }
-  .save-warn { margin: 0 0 14px 26px; font-size: 12px; color: var(--loss); }
+  .loading-state { padding: 30px 0; text-align: center; color: var(--ink-faint); font-size: 13.5px; }
 
-  @media (max-width: 480px) {
-    .summary { grid-template-columns: 1fr; }
+  @media (max-width: 600px) {
+    .summary { grid-template-columns: 1fr 1fr; }
+    .summary .cell:last-child { grid-column: span 2; }
     .batch-totals { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 440px) {
+    body { padding: 16px 10px 50px; }
+    .masthead .titles h1 { font-size: 21px; }
+    .toolbar select, .toolbar .search-wrap { flex: 1 1 100%; }
+    .modal { max-width: 100%; }
+    .modal .row2 { flex-direction: column; }
   }
 </style>
 </head>
 <body>
   <div class="container">
     <div class="masthead">
-      <h1>🐷 Pig Business Ledger</h1>
-      <div class="sub">Puhunan vs Kita, per batch</div>
+      <div class="titles">
+        <h1>🐷 Pig Business Ledger</h1>
+        <div class="sub">Puhunan vs Kita, per batch</div>
+      </div>
     </div>
 
-    <div class="save-warn" id="saveWarn" style="display:none;">Couldn't save — your changes may not persist. Try again in a moment.</div>
-
     <div class="summary">
-      <div class="cell">
-        <div class="label">Total Puhunan</div>
+      <div class="cell card">
+        <div class="label">Puhunan</div>
         <div class="num" id="sumPuhunan">₱0.00</div>
       </div>
-      <div class="cell">
-        <div class="label">Total Kita</div>
+      <div class="cell card">
+        <div class="label">Kita</div>
         <div class="num" id="sumKita">₱0.00</div>
       </div>
-      <div class="cell profit" id="sumProfitCell">
+      <div class="cell card profit" id="sumProfitCell">
         <div class="label">Net Profit</div>
         <div class="num" id="sumProfit">₱0.00</div>
       </div>
     </div>
 
-    <div class="new-batch">
-      <input type="text" id="newBatchName" placeholder="New batch name, e.g. Batch 3" />
-      <input type="date" id="newBatchDate" />
-      <button class="btn btn-barn" onclick="addBatch()">+ Add Batch</button>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search batches, expenses, sales..." oninput="onSearchChange()" />
+      </div>
+      <select id="statusFilter" class="filter-select" onchange="render()">
+        <option value="all">All statuses</option>
+        <option value="Ongoing">Ongoing</option>
+        <option value="Sold">Sold</option>
+      </select>
+      <select id="categoryFilter" class="filter-select" onchange="render()">
+        <option value="all">All categories</option>
+      </select>
+      <button class="btn btn-barn" onclick="openBatchModal()">+ New Batch</button>
     </div>
 
-    <div class="empty-state" id="emptyState" style="display:none;">No batches yet. Add your first batch above to start tracking puhunan and kita.</div>
+    <div class="loading-state" id="loadingState">Loading ledger…</div>
+    <div class="empty-state card" id="emptyState" style="display:none;">No batches yet. Tap "+ New Batch" to start tracking puhunan and kita.</div>
+    <div class="result-count" id="resultCount" style="display:none;"></div>
 
     <div id="batchList"></div>
   </div>
+
+  <!-- New Batch Modal -->
+  <div class="modal-overlay" id="batchModalOverlay">
+    <div class="modal card">
+      <h3>New batch</h3>
+      <p class="hint">Give this batch a name so you can track its own puhunan and kita.</p>
+      <div class="field-label">Name</div>
+      <input type="text" id="batchNameInput" placeholder="e.g. Batch 3" onkeydown="if(event.key==='Enter') submitBatch()" />
+      <div class="field-label">Start date (optional)</div>
+      <input type="date" id="batchDateInput" />
+      <div class="err" id="batchErr"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeBatchModal()">Cancel</button>
+        <button class="btn btn-barn" id="batchSubmitBtn" onclick="submitBatch()">Add Batch</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Expense Modal -->
+  <div class="modal-overlay" id="expenseModalOverlay">
+    <div class="modal card">
+      <h3>Add expense</h3>
+      <p class="hint">Logged under Puhunan for this batch.</p>
+      <div class="field-label">Category</div>
+      <div class="cat-inline">
+        <select id="expCatSelect"></select>
+        <button class="btn btn-outline btn-sm" onclick="openCatModal()">+ New</button>
+      </div>
+      <div class="field-label">Description (optional)</div>
+      <input type="text" id="expDescInput" placeholder="e.g. Sack of hog feed" />
+      <div class="field-label">Amount</div>
+      <input type="number" id="expAmtInput" placeholder="0.00" min="0" step="0.01" onkeydown="if(event.key==='Enter') submitExpense()" />
+      <div class="err" id="expErr"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeExpenseModal()">Cancel</button>
+        <button class="btn btn-barn" id="expenseSubmitBtn" onclick="submitExpense()">Add Expense</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Sale Modal -->
+  <div class="modal-overlay" id="saleModalOverlay">
+    <div class="modal card">
+      <h3>Add sale</h3>
+      <p class="hint">Logged under Kita for this batch.</p>
+      <div class="field-label">Description (optional)</div>
+      <input type="text" id="saleDescInput" placeholder="e.g. Sold 2 hogs" />
+      <div class="field-label">Amount</div>
+      <input type="number" id="saleAmtInput" placeholder="0.00" min="0" step="0.01" onkeydown="if(event.key==='Enter') submitSale()" />
+      <div class="err" id="saleErr"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeSaleModal()">Cancel</button>
+        <button class="btn btn-barn" id="saleSubmitBtn" onclick="submitSale()">Add Sale</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Category Modal (stacks above expense modal when opened from it) -->
+  <div class="modal-overlay" id="catModalOverlay">
+    <div class="modal card">
+      <h3>Add expense category</h3>
+      <p class="hint">This gets added to the category list for all batches.</p>
+      <input type="text" id="newCatLabel" placeholder="e.g. Transportation" onkeydown="if(event.key==='Enter') submitNewCategory()" />
+      <div class="err" id="catErr"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeCatModal()">Cancel</button>
+        <button class="btn btn-barn" id="catSubmitBtn" onclick="submitNewCategory()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div class="modal-overlay" id="confirmModalOverlay">
+    <div class="modal card">
+      <h3 id="confirmTitle">Delete this?</h3>
+      <p class="hint" id="confirmMessage">This can't be undone.</p>
+      <div class="modal-actions stretch">
+        <button class="btn btn-outline" onclick="closeConfirm()">Cancel</button>
+        <button class="btn btn-danger" id="confirmActionBtn" onclick="runConfirm()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -242,14 +311,20 @@
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJocW1va3h3b2psZ2lmY2lwZnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNzAyNTQsImV4cCI6MjEwMDY0NjI1NH0.ZDrAjhcRa_B7Lv6J86euWp6WxjmLwpAvCYPL6ZLXK7k";
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  const CATEGORIES = [
+  let CATEGORIES = [
     { id: "piglets", label: "Piglets / Stock" },
     { id: "feeds", label: "Feeds" },
     { id: "vitamins", label: "Vitamins / Medicine" },
   ];
+  let categoriesPersisted = true;
 
-  let batches = []; // [{ id, name, startDate, status, expenses:[], sales:[] }]
+  let batches = [];
   let expanded = {};
+  let searchTerm = "";
+  let pendingExpenseBatchId = null;
+  let pendingSaleBatchId = null;
+  let confirmCallback = null;
+  let toastTimer = null;
 
   function peso(n) {
     n = Number(n) || 0;
@@ -259,6 +334,9 @@
     const c = CATEGORIES.find((c) => c.id === id);
     return c ? c.label : id;
   }
+  function slugify(text) {
+    return (text.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")) || "cat-" + Date.now();
+  }
   function computeBatch(b) {
     const totalPuhunan = b.expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
     const totalKita = b.sales.reduce((s, e) => s + (Number(e.amount) || 0), 0);
@@ -267,13 +345,23 @@
     return { totalPuhunan, totalKita, profit, roi };
   }
 
-  function showWarn(msg) {
-    const el = document.getElementById("saveWarn");
+  function showToast(msg, isError) {
+    const el = document.getElementById("toast");
     el.textContent = msg;
-    el.style.display = "block";
+    el.classList.toggle("error", !!isError);
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), isError ? 4500 : 2200);
   }
-  function clearWarn() {
-    document.getElementById("saveWarn").style.display = "none";
+  function withBusy(btn, fn) {
+    return async (...args) => {
+      if (btn) btn.disabled = true;
+      try {
+        await fn(...args);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    };
   }
 
   async function load() {
@@ -295,46 +383,73 @@
         sales: saleRows.filter((s) => s.batch_id === b.id),
       }));
       if (batches.length) expanded[batches[batches.length - 1].id] = true;
-      clearWarn();
     } catch (e) {
-      showWarn("Couldn't load data from Supabase: " + (e.message || e));
+      showToast("Couldn't load data from Supabase: " + (e.message || e), true);
     }
+
+    try {
+      const { data: catRows, error: cErr } = await sb.from("categories").select("*").order("created_at", { ascending: true });
+      if (cErr) throw cErr;
+      if (catRows && catRows.length) CATEGORIES = catRows.map((c) => ({ id: c.id, label: c.label }));
+      categoriesPersisted = true;
+    } catch (e) {
+      categoriesPersisted = false;
+    }
+
+    document.getElementById("loadingState").style.display = "none";
     render();
   }
 
-  async function addBatch() {
-    const nameInput = document.getElementById("newBatchName");
-    const dateInput = document.getElementById("newBatchDate");
-    const name = nameInput.value.trim();
-    if (!name) return;
-    try {
-      const { data, error } = await sb
-        .from("batches")
-        .insert({ name, start_date: dateInput.value || null, status: "Ongoing" })
-        .select()
-        .single();
-      if (error) throw error;
-      batches.push({ id: data.id, name: data.name, startDate: data.start_date || "", status: data.status, expenses: [], sales: [] });
-      expanded[data.id] = true;
-      nameInput.value = "";
-      dateInput.value = "";
-      clearWarn();
-    } catch (e) {
-      showWarn("Couldn't add batch: " + (e.message || e));
+  // ---- New Batch modal ----
+  function openBatchModal() {
+    document.getElementById("batchNameInput").value = "";
+    document.getElementById("batchDateInput").value = "";
+    document.getElementById("batchErr").textContent = "";
+    document.getElementById("batchModalOverlay").classList.add("open");
+    setTimeout(() => document.getElementById("batchNameInput").focus(), 30);
+  }
+  function closeBatchModal() {
+    document.getElementById("batchModalOverlay").classList.remove("open");
+  }
+  async function submitBatch() {
+    const name = document.getElementById("batchNameInput").value.trim();
+    const date = document.getElementById("batchDateInput").value;
+    const errEl = document.getElementById("batchErr");
+    if (!name) {
+      errEl.textContent = "Please enter a batch name.";
+      return;
     }
-    render();
+    const btn = document.getElementById("batchSubmitBtn");
+    await withBusy(btn, async () => {
+      try {
+        const { data, error } = await sb.from("batches").insert({ name, start_date: date || null, status: "Ongoing" }).select().single();
+        if (error) throw error;
+        batches.push({ id: data.id, name: data.name, startDate: data.start_date || "", status: data.status, expenses: [], sales: [] });
+        expanded[data.id] = true;
+        closeBatchModal();
+        render();
+        showToast("Batch added.");
+      } catch (e) {
+        errEl.textContent = "Couldn't add batch: " + (e.message || e);
+      }
+    })();
   }
 
-  async function deleteBatch(id) {
-    try {
-      const { error } = await sb.from("batches").delete().eq("id", id);
-      if (error) throw error;
-      batches = batches.filter((b) => b.id !== id);
-      clearWarn();
-    } catch (e) {
-      showWarn("Couldn't delete batch: " + (e.message || e));
-    }
-    render();
+  function handleDeleteBatchClick(ev, id) {
+    ev.stopPropagation();
+    const b = batches.find((b) => b.id === id);
+    if (!b) return;
+    openConfirm(`Delete "${b.name}"?`, `This removes the batch and all its expenses and sales. This can't be undone.`, async () => {
+      try {
+        const { error } = await sb.from("batches").delete().eq("id", id);
+        if (error) throw error;
+        batches = batches.filter((b) => b.id !== id);
+        render();
+        showToast("Batch deleted.");
+      } catch (e) {
+        showToast("Couldn't delete batch: " + (e.message || e), true);
+      }
+    });
   }
 
   async function toggleStatus(id, ev) {
@@ -346,11 +461,10 @@
       const { error } = await sb.from("batches").update({ status: newStatus }).eq("id", id);
       if (error) throw error;
       b.status = newStatus;
-      clearWarn();
+      render();
     } catch (e) {
-      showWarn("Couldn't update status: " + (e.message || e));
+      showToast("Couldn't update status: " + (e.message || e), true);
     }
-    render();
   }
 
   function toggleExpand(id) {
@@ -358,87 +472,216 @@
     render();
   }
 
-  async function addExpense(batchId) {
-    const catEl = document.getElementById("cat-" + batchId);
-    const descEl = document.getElementById("edesc-" + batchId);
-    const amtEl = document.getElementById("eamt-" + batchId);
-    const amount = Number(amtEl.value);
-    if (!amount || amount <= 0) return;
-    try {
-      const { data, error } = await sb
-        .from("expenses")
-        .insert({ batch_id: batchId, category: catEl.value, description: descEl.value || null, amount })
-        .select()
-        .single();
-      if (error) throw error;
-      const b = batches.find((b) => b.id === batchId);
-      b.expenses.push(data);
-      descEl.value = "";
-      amtEl.value = "";
-      clearWarn();
-    } catch (e) {
-      showWarn("Couldn't add expense: " + (e.message || e));
+  // ---- Expense modal ----
+  function openExpenseModal(batchId) {
+    pendingExpenseBatchId = batchId;
+    document.getElementById("expCatSelect").innerHTML = catOptions(CATEGORIES[0] ? CATEGORIES[0].id : "");
+    document.getElementById("expDescInput").value = "";
+    document.getElementById("expAmtInput").value = "";
+    document.getElementById("expErr").textContent = "";
+    document.getElementById("expenseModalOverlay").classList.add("open");
+    setTimeout(() => document.getElementById("expAmtInput").focus(), 30);
+  }
+  function closeExpenseModal() {
+    document.getElementById("expenseModalOverlay").classList.remove("open");
+    pendingExpenseBatchId = null;
+  }
+  async function submitExpense() {
+    const category = document.getElementById("expCatSelect").value;
+    const description = document.getElementById("expDescInput").value.trim();
+    const amount = Number(document.getElementById("expAmtInput").value);
+    const errEl = document.getElementById("expErr");
+    if (!amount || amount <= 0) {
+      errEl.textContent = "Please enter an amount greater than 0.";
+      return;
     }
-    render();
+    const batchId = pendingExpenseBatchId;
+    const btn = document.getElementById("expenseSubmitBtn");
+    await withBusy(btn, async () => {
+      try {
+        const { data, error } = await sb.from("expenses").insert({ batch_id: batchId, category, description: description || null, amount }).select().single();
+        if (error) throw error;
+        const b = batches.find((b) => b.id === batchId);
+        b.expenses.push(data);
+        closeExpenseModal();
+        render();
+        showToast("Expense added.");
+      } catch (e) {
+        errEl.textContent = "Couldn't add expense: " + (e.message || e);
+      }
+    })();
   }
 
-  async function deleteExpense(batchId, expenseId) {
-    try {
-      const { error } = await sb.from("expenses").delete().eq("id", expenseId);
-      if (error) throw error;
-      const b = batches.find((b) => b.id === batchId);
-      b.expenses = b.expenses.filter((e) => e.id !== expenseId);
-      clearWarn();
-    } catch (e) {
-      showWarn("Couldn't delete expense: " + (e.message || e));
-    }
-    render();
+  function handleDeleteExpenseClick(batchId, expenseId) {
+    openConfirm("Delete this expense?", "This can't be undone.", async () => {
+      try {
+        const { error } = await sb.from("expenses").delete().eq("id", expenseId);
+        if (error) throw error;
+        const b = batches.find((b) => b.id === batchId);
+        b.expenses = b.expenses.filter((e) => e.id !== expenseId);
+        render();
+        showToast("Expense deleted.");
+      } catch (e) {
+        showToast("Couldn't delete expense: " + (e.message || e), true);
+      }
+    });
   }
 
-  async function addSale(batchId) {
-    const descEl = document.getElementById("sdesc-" + batchId);
-    const amtEl = document.getElementById("samt-" + batchId);
-    const amount = Number(amtEl.value);
-    if (!amount || amount <= 0) return;
-    try {
-      const { data, error } = await sb
-        .from("sales")
-        .insert({ batch_id: batchId, description: descEl.value || null, amount })
-        .select()
-        .single();
-      if (error) throw error;
-      const b = batches.find((b) => b.id === batchId);
-      b.sales.push(data);
-      descEl.value = "";
-      amtEl.value = "";
-      clearWarn();
-    } catch (e) {
-      showWarn("Couldn't add sale: " + (e.message || e));
+  // ---- Sale modal ----
+  function openSaleModal(batchId) {
+    pendingSaleBatchId = batchId;
+    document.getElementById("saleDescInput").value = "";
+    document.getElementById("saleAmtInput").value = "";
+    document.getElementById("saleErr").textContent = "";
+    document.getElementById("saleModalOverlay").classList.add("open");
+    setTimeout(() => document.getElementById("saleAmtInput").focus(), 30);
+  }
+  function closeSaleModal() {
+    document.getElementById("saleModalOverlay").classList.remove("open");
+    pendingSaleBatchId = null;
+  }
+  async function submitSale() {
+    const description = document.getElementById("saleDescInput").value.trim();
+    const amount = Number(document.getElementById("saleAmtInput").value);
+    const errEl = document.getElementById("saleErr");
+    if (!amount || amount <= 0) {
+      errEl.textContent = "Please enter an amount greater than 0.";
+      return;
     }
-    render();
+    const batchId = pendingSaleBatchId;
+    const btn = document.getElementById("saleSubmitBtn");
+    await withBusy(btn, async () => {
+      try {
+        const { data, error } = await sb.from("sales").insert({ batch_id: batchId, description: description || null, amount }).select().single();
+        if (error) throw error;
+        const b = batches.find((b) => b.id === batchId);
+        b.sales.push(data);
+        closeSaleModal();
+        render();
+        showToast("Sale added.");
+      } catch (e) {
+        errEl.textContent = "Couldn't add sale: " + (e.message || e);
+      }
+    })();
   }
 
-  async function deleteSale(batchId, saleId) {
-    try {
-      const { error } = await sb.from("sales").delete().eq("id", saleId);
-      if (error) throw error;
-      const b = batches.find((b) => b.id === batchId);
-      b.sales = b.sales.filter((s) => s.id !== saleId);
-      clearWarn();
-    } catch (e) {
-      showWarn("Couldn't delete sale: " + (e.message || e));
-    }
-    render();
+  function handleDeleteSaleClick(batchId, saleId) {
+    openConfirm("Delete this sale?", "This can't be undone.", async () => {
+      try {
+        const { error } = await sb.from("sales").delete().eq("id", saleId);
+        if (error) throw error;
+        const b = batches.find((b) => b.id === batchId);
+        b.sales = b.sales.filter((s) => s.id !== saleId);
+        render();
+        showToast("Sale deleted.");
+      } catch (e) {
+        showToast("Couldn't delete sale: " + (e.message || e), true);
+      }
+    });
   }
 
+  // ---- Category modal (can stack above the expense modal) ----
+  function openCatModal() {
+    document.getElementById("newCatLabel").value = "";
+    document.getElementById("catErr").textContent = "";
+    const overlay = document.getElementById("catModalOverlay");
+    overlay.classList.add("open");
+    if (document.getElementById("expenseModalOverlay").classList.contains("open")) overlay.classList.add("top");
+    setTimeout(() => document.getElementById("newCatLabel").focus(), 30);
+  }
+  function closeCatModal() {
+    const overlay = document.getElementById("catModalOverlay");
+    overlay.classList.remove("open");
+    overlay.classList.remove("top");
+  }
+  async function submitNewCategory() {
+    const input = document.getElementById("newCatLabel");
+    const errEl = document.getElementById("catErr");
+    const label = input.value.trim();
+    if (!label) {
+      errEl.textContent = "Please enter a category name.";
+      return;
+    }
+    const id = slugify(label);
+    if (CATEGORIES.some((c) => c.id === id || c.label.toLowerCase() === label.toLowerCase())) {
+      errEl.textContent = "That category already exists.";
+      return;
+    }
+    const btn = document.getElementById("catSubmitBtn");
+    await withBusy(btn, async () => {
+      let newCat = { id, label };
+      try {
+        const { data, error } = await sb.from("categories").insert({ id, label }).select().single();
+        if (error) throw error;
+        newCat = { id: data.id, label: data.label };
+        categoriesPersisted = true;
+      } catch (e) {
+        categoriesPersisted = false;
+      }
+      CATEGORIES.push(newCat);
+      closeCatModal();
+      render();
+      const expSelect = document.getElementById("expCatSelect");
+      if (document.getElementById("expenseModalOverlay").classList.contains("open")) {
+        expSelect.innerHTML = catOptions(newCat.id);
+      }
+      if (!categoriesPersisted) {
+        showToast('Category added for this session, but a "categories" table wasn\'t found in Supabase, so it won\'t be saved after reload.', true);
+      } else {
+        showToast("Category added.");
+      }
+    })();
+  }
   function catOptions(selectedId) {
-    return CATEGORIES.map(
-      (c) => `<option value="${c.id}" ${c.id === selectedId ? "selected" : ""}>${c.label}</option>`
-    ).join("");
+    return CATEGORIES.map((c) => `<option value="${c.id}" ${c.id === selectedId ? "selected" : ""}>${c.label}</option>`).join("");
+  }
+
+  // ---- Generic confirm modal ----
+  function openConfirm(title, message, callback) {
+    document.getElementById("confirmTitle").textContent = title;
+    document.getElementById("confirmMessage").textContent = message;
+    confirmCallback = callback;
+    document.getElementById("confirmModalOverlay").classList.add("open");
+  }
+  function closeConfirm() {
+    document.getElementById("confirmModalOverlay").classList.remove("open");
+    confirmCallback = null;
+  }
+  async function runConfirm() {
+    const cb = confirmCallback;
+    closeConfirm();
+    if (cb) await cb();
+  }
+
+  // ---- Search & filter ----
+  function onSearchChange() {
+    searchTerm = document.getElementById("searchInput").value.trim().toLowerCase();
+    render();
+  }
+  function matchesSearch(b) {
+    if (!searchTerm) return true;
+    if (b.name.toLowerCase().includes(searchTerm)) return true;
+    if (b.expenses.some((e) => (e.description || "").toLowerCase().includes(searchTerm) || catLabel(e.category).toLowerCase().includes(searchTerm))) return true;
+    if (b.sales.some((s) => (s.description || "").toLowerCase().includes(searchTerm))) return true;
+    return false;
+  }
+  function getFilteredBatches() {
+    const statusFilter = document.getElementById("statusFilter").value;
+    const categoryFilter = document.getElementById("categoryFilter").value;
+    return batches.filter((b) => {
+      if (statusFilter !== "all" && b.status !== statusFilter) return false;
+      if (categoryFilter !== "all" && !b.expenses.some((e) => e.category === categoryFilter)) return false;
+      if (!matchesSearch(b)) return false;
+      return true;
+    });
   }
 
   function render() {
-    // overall summary
+    const catFilterEl = document.getElementById("categoryFilter");
+    const prevCatFilter = catFilterEl.value;
+    catFilterEl.innerHTML = `<option value="all">All categories</option>` + CATEGORIES.map((c) => `<option value="${c.id}">${c.label}</option>`).join("");
+    if (CATEGORIES.some((c) => c.id === prevCatFilter)) catFilterEl.value = prevCatFilter;
+
     let sumPuhunan = 0, sumKita = 0, sumProfit = 0;
     batches.forEach((b) => {
       const c = computeBatch(b);
@@ -451,10 +694,26 @@
     document.getElementById("sumProfit").textContent = peso(sumProfit);
     document.getElementById("sumProfitCell").classList.toggle("neg", sumProfit < 0);
 
-    document.getElementById("emptyState").style.display = batches.length === 0 ? "block" : "none";
+    const loadingDone = document.getElementById("loadingState").style.display === "none";
+    document.getElementById("emptyState").style.display = loadingDone && batches.length === 0 ? "block" : "none";
+
+    const filtered = getFilteredBatches();
+    const resultCountEl = document.getElementById("resultCount");
+    const isFiltering = searchTerm || document.getElementById("statusFilter").value !== "all" || document.getElementById("categoryFilter").value !== "all";
+    if (batches.length && isFiltering) {
+      resultCountEl.style.display = "block";
+      resultCountEl.textContent = `Showing ${filtered.length} of ${batches.length} batch${batches.length === 1 ? "" : "es"}`;
+    } else {
+      resultCountEl.style.display = "none";
+    }
 
     const listEl = document.getElementById("batchList");
-    listEl.innerHTML = batches
+    if (batches.length && filtered.length === 0) {
+      listEl.innerHTML = `<div class="empty-state card">No batches match your search or filters.</div>`;
+      return;
+    }
+
+    listEl.innerHTML = filtered
       .map((b) => {
         const { totalPuhunan, totalKita, profit, roi } = computeBatch(b);
         const isOpen = !!expanded[b.id];
@@ -464,13 +723,13 @@
                 (e) => `
               <tr>
                 <td class="cat">${catLabel(e.category)}</td>
-                <td>${e.description}</td>
+                <td>${e.description || ""}</td>
                 <td class="amt">${peso(e.amount)}</td>
-                <td style="width:28px;"><button class="btn-icon" onclick="deleteExpense('${b.id}','${e.id}')">✕</button></td>
+                <td style="width:28px;"><button class="btn-icon" onclick="handleDeleteExpenseClick('${b.id}','${e.id}')">✕</button></td>
               </tr>`
               )
               .join("")
-          : `<tr><td colspan="3" class="empty-row">No expenses logged yet for this batch.</td></tr>`;
+          : `<tr><td colspan="4" class="empty-row">No expenses logged yet.</td></tr>`;
 
         const saleRows = b.sales.length
           ? b.sales
@@ -479,42 +738,38 @@
               <tr>
                 <td>${s.description || "Sale"}</td>
                 <td class="amt">${peso(s.amount)}</td>
-                <td style="width:28px;"><button class="btn-icon" onclick="deleteSale('${b.id}','${s.id}')">✕</button></td>
+                <td style="width:28px;"><button class="btn-icon" onclick="handleDeleteSaleClick('${b.id}','${s.id}')">✕</button></td>
               </tr>`
               )
               .join("")
-          : `<tr><td colspan="2" class="empty-row">No sales logged yet for this batch.</td></tr>`;
+          : `<tr><td colspan="3" class="empty-row">No sales logged yet.</td></tr>`;
 
         return `
-        <div class="batch ${isOpen ? "open" : ""}">
+        <div class="batch card ${isOpen ? "open" : ""}">
           <div class="batch-head" onclick="toggleExpand('${b.id}')">
             <div class="left">
               <span class="name">${b.name}</span>
               ${b.startDate ? `<span class="meta">${b.startDate}</span>` : ""}
               <span class="status ${b.status === "Sold" ? "sold" : "ongoing"}" onclick="toggleStatus('${b.id}', event)">${b.status}</span>
             </div>
-            <div style="display:flex;align-items:center;gap:10px;">
+            <div class="right">
               <span class="batch-profit ${profit >= 0 ? "pos" : "neg"}">${profit >= 0 ? "▲" : "▼"} ${peso(profit)}</span>
+              <button class="btn-icon" onclick="handleDeleteBatchClick(event,'${b.id}')" title="Delete batch">🗑</button>
               <span class="chevron">▾</span>
             </div>
           </div>
           <div class="batch-body">
-            <div class="section-title">Expenses (Puhunan)</div>
-            <table><tbody>${expenseRows}</tbody></table>
-            <div class="add-row">
-              <select id="cat-${b.id}">${catOptions("piglets")}</select>
-              <input type="text" id="edesc-${b.id}" placeholder="Description (optional)" />
-              <input type="number" id="eamt-${b.id}" placeholder="Amount" onkeydown="if(event.key==='Enter') addExpense('${b.id}')" />
-              <button class="btn btn-barn" onclick="addExpense('${b.id}')">+ Add</button>
+            <div class="section-row">
+              <span class="section-title">Expenses (Puhunan)</span>
+              <button class="btn btn-outline btn-sm" onclick="openExpenseModal('${b.id}')">+ Add Expense</button>
             </div>
+            <div class="table-scroll"><table><tbody>${expenseRows}</tbody></table></div>
 
-            <div class="section-title">Sales (Kita)</div>
-            <table><tbody>${saleRows}</tbody></table>
-            <div class="add-row">
-              <input type="text" id="sdesc-${b.id}" placeholder="Description (optional)" />
-              <input type="number" id="samt-${b.id}" placeholder="Amount" onkeydown="if(event.key==='Enter') addSale('${b.id}')" />
-              <button class="btn btn-barn" onclick="addSale('${b.id}')">+ Add</button>
+            <div class="section-row">
+              <span class="section-title">Sales (Kita)</span>
+              <button class="btn btn-outline btn-sm" onclick="openSaleModal('${b.id}')">+ Add Sale</button>
             </div>
+            <div class="table-scroll"><table><tbody>${saleRows}</tbody></table></div>
 
             <div class="batch-totals">
               <div><div class="t-label">Puhunan</div><div class="t-num">${peso(totalPuhunan)}</div></div>
@@ -522,18 +777,30 @@
               <div><div class="t-label">Profit</div><div class="t-num" style="color:${profit >= 0 ? "var(--forest)" : "var(--loss)"}">${peso(profit)}</div></div>
               <div><div class="t-label">ROI</div><div class="t-num">${roi.toFixed(0)}%</div></div>
             </div>
-
-            <div class="delete-batch">
-              <button class="btn btn-ghost" onclick="deleteBatch('${b.id}')">🗑 Delete batch</button>
-            </div>
           </div>
         </div>`;
       })
       .join("");
   }
 
-  document.getElementById("newBatchName").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") addBatch();
+  // close overlays on backdrop click / Escape
+  ["batchModalOverlay", "expenseModalOverlay", "saleModalOverlay", "catModalOverlay", "confirmModalOverlay"].forEach((id) => {
+    document.getElementById(id).addEventListener("click", (e) => {
+      if (e.target.id !== id) return;
+      if (id === "batchModalOverlay") closeBatchModal();
+      else if (id === "expenseModalOverlay") closeExpenseModal();
+      else if (id === "saleModalOverlay") closeSaleModal();
+      else if (id === "catModalOverlay") closeCatModal();
+      else if (id === "confirmModalOverlay") closeConfirm();
+    });
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (document.getElementById("catModalOverlay").classList.contains("open")) closeCatModal();
+    else if (document.getElementById("confirmModalOverlay").classList.contains("open")) closeConfirm();
+    else if (document.getElementById("expenseModalOverlay").classList.contains("open")) closeExpenseModal();
+    else if (document.getElementById("saleModalOverlay").classList.contains("open")) closeSaleModal();
+    else if (document.getElementById("batchModalOverlay").classList.contains("open")) closeBatchModal();
   });
 
   load();
